@@ -230,7 +230,8 @@ final class Defaulting {
     private static Timeouts merge(final Timeouts base, final Timeouts defaults) {
         return new Timeouts(
                 either(base.getEnabled(), defaults.getEnabled()),
-                either(base.getGlobal(), defaults.getGlobal())
+                either(base.getGlobal(), defaults.getGlobal()),
+                either(base.getCall(), defaults.getCall())
         );
     }
 

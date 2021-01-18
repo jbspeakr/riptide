@@ -248,6 +248,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
     private List<BeanReference> registerPlugins(final String id, final Client client) {
         final Stream<Optional<String>> plugins = Stream.of(
                 registerChaosPlugin(id, client),
+                registerCallTimeoutFailsafePlugin(id, client),
                 registerMicrometerPlugin(id, client),
                 registerRequestCompressionPlugin(id, client),
                 registerLogbookPlugin(id, client),
@@ -256,7 +257,7 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
                 registerRetryPolicyFailsafePlugin(id, client),
                 registerAuthorizationPlugin(id, client),
                 registerBackupRequestFailsafePlugin(id, client),
-                registerTimeoutFailsafePlugin(id, client),
+                registerGlobalTimeoutFailsafePlugin(id, client),
                 registerOriginalStackTracePlugin(id, client),
                 registerCustomPlugin(id));
 
@@ -453,12 +454,26 @@ final class DefaultRiptideRegistrar implements RiptideRegistrar {
         return Optional.empty();
     }
 
-    private Optional<String> registerTimeoutFailsafePlugin(final String id, final Client client) {
-        if (client.getTimeouts().getEnabled()) {
+    private Optional<String> registerCallTimeoutFailsafePlugin(final String id, final Client client) {
+        if (client.getTimeouts().getEnabled() && client.getTimeouts().getCall() != null) {
             final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
-                log.debug("Client [{}]: Registering [TimeoutFailsafePlugin]", id);
+                log.debug("Client [{}]: Registering [CallTimeoutFailsafePlugin]", id);
                 return genericBeanDefinition(FailsafePluginFactory.class)
-                        .setFactoryMethod("createTimeoutPlugin")
+                    .setFactoryMethod("createCallTimeoutPlugin")
+                    .addConstructorArgValue(client)
+                    .addConstructorArgValue(createTaskDecorator(id, client));
+            });
+            return Optional.of(pluginId);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> registerGlobalTimeoutFailsafePlugin(final String id, final Client client) {
+        if (client.getTimeouts().getEnabled() && client.getTimeouts().getGlobal() != null) {
+            final String pluginId = registry.registerIfAbsent(name(id, Timeout.class, FailsafePlugin.class), () -> {
+                log.debug("Client [{}]: Registering [GlobalTimeoutFailsafePlugin]", id);
+                return genericBeanDefinition(FailsafePluginFactory.class)
+                        .setFactoryMethod("createGlobalTimeoutPlugin")
                         .addConstructorArgValue(client)
                         .addConstructorArgValue(createTaskDecorator(id, client));
             });

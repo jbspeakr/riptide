@@ -145,7 +145,7 @@ final class FailsafePluginFactory {
                 .withDecorator(decorator);
     }
 
-    public static Plugin createTimeoutPlugin(
+    public static Plugin createGlobalTimeoutPlugin(
             final Client client, final TaskDecorator decorator) {
 
         final Duration timeout = client.getTimeouts().getGlobal().toDuration();
@@ -155,6 +155,18 @@ final class FailsafePluginFactory {
                         Timeout.<ClientHttpResponse>of(timeout)
                                 .withCancel(true))
                 .withDecorator(decorator);
+    }
+
+    public static Plugin createCallTimeoutPlugin(
+        final Client client, final TaskDecorator decorator) {
+
+        final Duration timeout = client.getTimeouts().getCall().toDuration();
+
+        return new FailsafePlugin()
+            .withPolicy(
+                Timeout.<ClientHttpResponse>of(timeout)
+                    .withCancel(true))
+            .withDecorator(decorator);
     }
 
     private static DelayFunction<ClientHttpResponse, Throwable> delayFunction() {

@@ -99,7 +99,7 @@ public final class RiptideProperties {
         private BackupRequest backupRequest = new BackupRequest(false, null);
 
         @NestedConfigurationProperty
-        private Timeouts timeouts = new Timeouts(false, null);
+        private Timeouts timeouts = new Timeouts(false, null, null);
 
         @NestedConfigurationProperty
         private RequestCompression requestCompression = new RequestCompression(false);
@@ -327,6 +327,7 @@ public final class RiptideProperties {
     public static final class Timeouts {
         private Boolean enabled;
         private TimeSpan global;
+        private TimeSpan call;
     }
 
     @Getter
